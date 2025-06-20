@@ -1,0 +1,47 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load dataset
+df = pd.read_csv("heart.csv")
+print(df.head())
+
+# Split data
+X = df.drop("target", axis=1)
+y = df["target"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Decision Tree
+dt = DecisionTreeClassifier(max_depth=5, random_state=42)
+dt.fit(X_train, y_train)
+y_pred_dt = dt.predict(X_test)
+print("Decision Tree Accuracy:", accuracy_score(y_test, y_pred_dt))
+
+# Plot Decision Tree
+plt.figure(figsize=(15, 7))
+plot_tree(dt, feature_names=X.columns, class_names=["No Disease", "Disease"], filled=True)
+plt.title("Decision Tree")
+plt.show()
+
+# Random Forest
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+print("Random Forest Accuracy:", accuracy_score(y_test, y_pred_rf))
+
+# Feature Importance
+feat_imp = pd.Series(rf.feature_importances_, index=X.columns).sort_values(ascending=False)
+sns.barplot(x=feat_imp, y=feat_imp.index)
+plt.title("Feature Importances from Random Forest")
+plt.xlabel("Importance")
+plt.show()
+
+# Cross-validation
+dt_cv = cross_val_score(dt, X, y, cv=5).mean()
+rf_cv = cross_val_score(rf, X, y, cv=5).mean()
+print("CV Accuracy (Decision Tree):", dt_cv)
+print("CV Accuracy (Random Forest):", rf_cv)
